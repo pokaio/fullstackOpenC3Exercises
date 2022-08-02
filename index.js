@@ -1,12 +1,22 @@
 //Exercise 3.1-3.8
-
-//3.5
+//Phonebook-backend 
 
 //const { json } = require('express')
 const express = require('express')
 const app = express()
 
-app.use(express.json()) //Activates the json-parser
+//Morgan logger (middelware)
+const morgan = require('morgan')
+
+app.use(express.json()) //Activates the json-parser middelware
+
+//The token allows us to display custom variables with morgan
+morgan.token('body', (request, response) => {
+    return JSON.stringify(request.body)
+})
+app.use(morgan(':method :url :status :res[content-length] :response-time ms :body'))
+
+
 
 let persons = [
     {
@@ -33,7 +43,7 @@ let persons = [
 
 app.get('/', (request, response) => {
 
-    response.send(generateId())
+    response.send("<h1>Hello world!</h1>")
 })
 
 app.get('/api/persons', (request, response) => {
@@ -83,6 +93,8 @@ const generateId = () => {
     return newId
 }
 
+
+
 app.post('/api/persons', (request, response) => {
     const body = request.body
     const names = persons.map(el => el.name)
@@ -93,7 +105,7 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    if(names.includes(body.name)) {
+    if (names.includes(body.name)) {
         response.status(400).json({
             error: 'name must be unique'
         })
@@ -108,6 +120,9 @@ app.post('/api/persons', (request, response) => {
     persons = persons.concat(personsObj)
     response.json(persons)
 })
+
+
+
 
 const PORT = 3001
 app.listen(PORT)
