@@ -2,7 +2,7 @@
 
 //3.5
 
-const { json } = require('express')
+//const { json } = require('express')
 const express = require('express')
 const app = express()
 
@@ -32,7 +32,8 @@ let persons = [
 ]
 
 app.get('/', (request, response) => {
-    response.send("<h1>Hello world</h1>")
+
+    response.send(generateId())
 })
 
 app.get('/api/persons', (request, response) => {
@@ -48,7 +49,7 @@ app.get('/api/persons/:id', (request, response) => {
     } else (
         response.status(404).end()
     )
-    
+
 })
 
 app.get('/info', (request, response) => {
@@ -72,12 +73,40 @@ app.delete('/api/persons/:id', (request, response) => {
 
 const generateId = () => {
     //Check if Id already exists
-    const newId = Math.floor(Math.random()*10000)
+    let newId = Math.floor(Math.random() * 1000)
+    const arr = persons.map(el => el.id)
+
+    while (arr.includes(newId)) {
+        newId = Math.floor(Math.random() * 1000)
+    }
+
+    return newId
 }
 
-
 app.post('/api/persons', (request, response) => {
+    const body = request.body
+    const names = persons.map(el => el.name)
 
+    if (!body.name || !body.number) {
+        response.status(400).json({
+            error: 'missing name or number'
+        })
+    }
+
+    if(names.includes(body.name)) {
+        response.status(400).json({
+            error: 'name must be unique'
+        })
+    }
+
+    const personsObj = {
+        id: generateId(),
+        name: body.name,
+        number: body.number
+    }
+
+    persons = persons.concat(personsObj)
+    response.json(persons)
 })
 
 const PORT = 3001
