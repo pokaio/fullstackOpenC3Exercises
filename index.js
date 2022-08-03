@@ -4,6 +4,8 @@ const app = express()
 
 app.use(express.json()) //Activates the json-parser
 app.use(cors())
+app.use(express.static('build')) //Allows us to display a static page from the backend server
+
 
 let notes = [
     {
