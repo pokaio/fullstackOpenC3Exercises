@@ -1,12 +1,16 @@
-//Exercise 3.1-3.8
+//Exercise 3.1-3.11
 //Phonebook-backend 
 
 //const { json } = require('express')
 const express = require('express')
 const app = express()
 
-//Morgan logger (middelware)
-const morgan = require('morgan')
+const cors = require('cors') //Cross orgins 
+app.use(cors())
+
+app.use(express.static('build')) //Allows us to display a static webpage from backend
+
+const morgan = require('morgan') //Morgan logger (middelware)
 
 app.use(express.json()) //Activates the json-parser middelware
 
@@ -15,8 +19,6 @@ morgan.token('body', (request, response) => {
     return JSON.stringify(request.body)
 })
 app.use(morgan(':method :url :status :res[content-length] :response-time ms :body'))
-
-
 
 let persons = [
     {
@@ -124,5 +126,7 @@ app.post('/api/persons', (request, response) => {
 
 
 
-const PORT = 3001
-app.listen(PORT)
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+})
