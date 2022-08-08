@@ -1,9 +1,14 @@
-//Exercise 3.1-3.11
+//Exercise 3.1-3.14
 //Phonebook-backend 
 
-//const { json } = require('express')
+
+//Exercise 3.13
+
 const express = require('express')
 const app = express()
+
+require('dotenv').config() //Imports variables from .env file
+const Person = require('./models/person') //Imports Mongoose backend code
 
 const cors = require('cors') //Cross orgins 
 app.use(cors())
@@ -20,70 +25,50 @@ morgan.token('body', (request, response) => {
 })
 app.use(morgan(':method :url :status :res[content-length] :response-time ms :body'))
 
-let persons = [
-    {
-        "id": 1,
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": 2,
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": 3,
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": 4,
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
-    }
-]
+
 
 app.get('/', (request, response) => {
-
     response.send("<h1>Hello world!</h1>")
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(el => {
+        response.json(el)
+    })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
+    /* const id = Number(request.params.id)
     const filter = persons.find(el => el.id === id)
 
     if (filter) {
         response.json(filter)
     } else (
         response.status(404).end()
-    )
+    ) */
 
 })
 
 app.get('/info', (request, response) => {
-    const entries = persons.length
+    /* const entries = persons.length
     const receivedRequest = new Date()
     response.send(
         `<p>Phonebook has info for ${entries} people.<p> 
         ${receivedRequest}`
-    )
+    ) */
 })
 
 
 app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
+    /* const id = Number(request.params.id)
     persons = persons.filter(el => el.id !== id)
 
-    response.status(204).end()
+    response.status(204).end() */
 
 })
 
 
-const generateId = () => {
+/* const generateId = () => {
     //Check if Id already exists
     let newId = Math.floor(Math.random() * 1000)
     const arr = persons.map(el => el.id)
@@ -93,12 +78,39 @@ const generateId = () => {
     }
 
     return newId
-}
+} */
 
 
 
 app.post('/api/persons', (request, response) => {
     const body = request.body
+
+
+    console.log(body.name)
+
+    if (body.name === undefined || body.number === undefined) {
+        return response.status(400).json({
+            error: 'content missing'
+        })
+    }
+
+
+    const person = new Person({
+        name: body.name,
+        number: Number(body.number),
+    })
+
+    
+
+    person.save().then(savedPerson => {
+        response.json(savedPerson)
+    })
+        .catch((error) => {
+            console.log(error.message)
+        })
+
+
+    /* const body = request.body
     const names = persons.map(el => el.name)
 
     if (!body.name || !body.number) {
@@ -120,7 +132,7 @@ app.post('/api/persons', (request, response) => {
     }
 
     persons = persons.concat(personsObj)
-    response.json(persons)
+    response.json(persons) */
 })
 
 
