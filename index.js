@@ -1,23 +1,17 @@
-//Exercise 3.1-3.14
+//Exercise 3.1-3.18
 //Phonebook-backend 
 
 
-//Exercise 3.13
-
 const express = require('express')
 const app = express()
-
+app.use(express.json()) //Activates the json-parser middelware
 require('dotenv').config() //Imports variables from .env file
 const Person = require('./models/person') //Imports Mongoose backend code
-
 const cors = require('cors') //Cross orgins 
 app.use(cors())
-
 app.use(express.static('build')) //Allows us to display a static webpage from backend
-
 const morgan = require('morgan') //Morgan logger (middelware)
-
-app.use(express.json()) //Activates the json-parser middelware
+const { restart } = require('nodemon')
 
 //The token allows us to display custom variables with morgan
 morgan.token('body', (request, response) => {
@@ -37,7 +31,17 @@ app.get('/api/persons', (request, response) => {
     })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id)
+        .then(person => {
+            if (person) {
+                response.json(person)
+            } else {
+                response.status(404).end()
+            }
+        })
+        .catch(error => next(error))
+
     /* const id = Number(request.params.id)
     const filter = persons.find(el => el.id === id)
 
@@ -50,6 +54,9 @@ app.get('/api/persons/:id', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
+    Person.find({}).then(result => {
+        response.send(`<p>Phonebook has info on ${result.length} people.</p>`)
+    })
     /* const entries = persons.length
     const receivedRequest = new Date()
     response.send(
@@ -59,7 +66,14 @@ app.get('/info', (request, response) => {
 })
 
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndRemove(request.params.id)
+        .then(result => {
+            response.status(204).end()
+        })
+        .catch(error => next(error))
+
+
     /* const id = Number(request.params.id)
     persons = persons.filter(el => el.id !== id)
 
@@ -80,13 +94,24 @@ app.delete('/api/persons/:id', (request, response) => {
     return newId
 } */
 
-
-
-app.post('/api/persons', (request, response) => {
+app.put('/api/persons/:id', (request, response, next) => {
     const body = request.body
+    
+    const person = {
+        name: body.name,
+        number: body.number
+    }
 
+    Person.findByIdAndUpdate(request.params.id, person, {new: true})  
+    .then(updatedPerson => {
+        response.json(updatedPerson)
+    })
+    .catch(error => next(error))  
 
-    console.log(body.name)
+})
+
+app.post('/api/persons/', (request, response, next) => {
+    const body = request.body
 
     if (body.name === undefined || body.number === undefined) {
         return response.status(400).json({
@@ -94,20 +119,30 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-
     const person = new Person({
         name: body.name,
         number: Number(body.number),
     })
 
+    person.save().then(savedPerson => {
+        response.json(savedPerson)
+    })
+        .catch((error) => next(error))
     
 
+    /* const person = new Person({
+        name: body.name,
+        number: Number(body.number),
+    })
+ 
+ 
+ 
     person.save().then(savedPerson => {
         response.json(savedPerson)
     })
         .catch((error) => {
             console.log(error.message)
-        })
+        }) */
 
 
     /* const body = request.body
@@ -137,6 +172,17 @@ app.post('/api/persons', (request, response) => {
 
 
 
+const errorHandler = (error, request, response, next) => {
+    console.log(error.message)
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+    }
+
+    next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {

@@ -7,9 +7,9 @@ GET http://localhost:3001/info
 
 ###
 
-GET http://localhost:3001/
+GET http://localhost:3001/api/persons/62f38da13472ff3a45924128
 
 
 ###
 
-GET http://localhost:3001/api/persons/1
+DELETE http://localhost:3001/api/persons/62f213a0a484e4ee1ea74d9b
