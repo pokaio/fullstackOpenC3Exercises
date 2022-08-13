@@ -13,7 +13,6 @@ const cors = require('cors') //Cross orgins
 app.use(cors())
 app.use(express.static('build')) //Allows us to display a static webpage from backend
 const morgan = require('morgan') //Morgan logger (middelware)
-const { restart } = require('nodemon')
 
 //The token allows us to display custom variables with morgan
 morgan.token('body', (request, response) => {
